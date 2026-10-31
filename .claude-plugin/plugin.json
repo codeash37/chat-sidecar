@@ -1,0 +1,128 @@
+{
+  "name": "chat-sidecar",
+  "version": "0.4.0",
+  "description": "A side pane for the current chat that shows what Claude is doing, what's waiting on you, and what it's using: the to-do list, tasks Claude gives you, answered in place, subagents, background processes, connectors, context files and skills of this chat, in one side pane; the plan band above the prompt",
+  "author": {
+    "name": "Damian Syczewski"
+  },
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "showTodo": {
+      "type": "boolean",
+      "title": "Show To-do",
+      "description": "Draw the To-do section. Off, it is not drawn and its background work stops.",
+      "default": true
+    },
+    "showTasks": {
+      "type": "boolean",
+      "title": "Show Tasks for me",
+      "description": "Draw the Tasks for me section. Off, it is not drawn and its background work stops.",
+      "default": true
+    },
+    "showSubagents": {
+      "type": "boolean",
+      "title": "Show Subagents",
+      "description": "Draw the Subagents section. Off, it is not drawn and its background work stops.",
+      "default": true
+    },
+    "showBackground": {
+      "type": "boolean",
+      "title": "Show Background",
+      "description": "Draw the Background section. Off, it is not drawn and its background work stops.",
+      "default": true
+    },
+    "showConnectors": {
+      "type": "boolean",
+      "title": "Show Connectors",
+      "description": "Draw the Connectors section. Off, it is not drawn and its background work stops.",
+      "default": true
+    },
+    "showFiles": {
+      "type": "boolean",
+      "title": "Show Context files",
+      "description": "Draw the Context files section. Off, it is not drawn and its background work stops.",
+      "default": true
+    },
+    "showSkills": {
+      "type": "boolean",
+      "title": "Show Skills",
+      "description": "Draw the Skills section. Off, it is not drawn and its background work stops.",
+      "default": true
+    },
+    "showGit": {
+      "type": "boolean",
+      "title": "Show Git",
+      "description": "Draw the Git section (the base branch, whether this is a worktree, the main repo). Off, it is not drawn and git is not run.",
+      "default": true
+    },
+    "sectionOrder": {
+      "type": "string",
+      "title": "Section order",
+      "description": "The order the sections are drawn in, ids separated by commas: todo, tasks, subagents, background, connectors, files, skills, git. Unknown ids are skipped and missing ones go last.",
+      "default": "todo, tasks, subagents, background, connectors, files, skills, git"
+    },
+    "bandColor": {
+      "type": "string",
+      "title": "Plan band colour",
+      "description": "The colour of the plan band above the prompt: purple, green (bottle green), burgundy, navy or orange.",
+      "default": "purple",
+      "options": [
+        "purple",
+        "green",
+        "burgundy",
+        "navy",
+        "orange"
+      ]
+    },
+    "barStyle": {
+      "type": "string",
+      "title": "Bar style",
+      "description": "The terminal's bar style for the plan band and the subagent cards: gradient, segments, line, dots (one per step) or pixel (braille).",
+      "default": "gradient",
+      "options": [
+        "gradient",
+        "segments",
+        "line",
+        "dots",
+        "pixel"
+      ]
+    },
+    "ports": {
+      "type": "string",
+      "title": "Watched ports",
+      "description": "Ports to show when something listens on them, as port=label separated by commas, e.g. 8090=backend, 4200=frontend. The label debug draws the entry in the debug color.",
+      "default": "8090=backend, 8091=backend, 5005=debug, 4200=frontend, 4201=frontend"
+    },
+    "pollSeconds": {
+      "type": "number",
+      "title": "Port check interval (s)",
+      "description": "How often the watched ports are checked (netstat on Windows, ss on Linux). At least 2.",
+      "default": 10
+    },
+    "jobsSeconds": {
+      "type": "number",
+      "title": "Test process scan interval (s)",
+      "description": "How often running tests are looked for. The scan costs about 1 s of CPU on Windows (PowerShell). At least the port interval.",
+      "default": 30
+    },
+    "testWarnMinutes": {
+      "type": "number",
+      "title": "Tests: yellow after (min)",
+      "description": "A test run going this long turns yellow.",
+      "default": 15
+    },
+    "testErrorMinutes": {
+      "type": "number",
+      "title": "Tests: red after (min)",
+      "description": "A test run going this long turns red: probably hung.",
+      "default": 30
+    },
+    "serverWarnHours": {
+      "type": "number",
+      "title": "Servers: yellow after (h)",
+      "description": "A server listening this long turns yellow: probably forgotten.",
+      "default": 8
+    }
+  }
+}
