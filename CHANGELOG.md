@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- The pane, its sections, the plan band and connector detection are rewritten from a behavior spec (`SPEC.md`); features, settings, commands and tools are unchanged.
+- Connector logos come from Simple Icons (CC0); a service without one shows a letter badge.
+
 ## 0.4.0
 
 - Tasks are answered in the **Tasks for me** section; the separate My tasks pane is gone.
