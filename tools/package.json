@@ -1,0 +1,8 @@
+{
+  "name": "chat-sidecar-tools",
+  "private": true,
+  "description": "Build-time tools for chat-sidecar: generates hooks/logos.ts from simple-icons (CC0).",
+  "type": "module",
+  "scripts": { "logos": "node gen-logos.mjs" },
+  "devDependencies": { "simple-icons": "16.35.0" }
+}
