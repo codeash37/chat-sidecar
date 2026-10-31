@@ -1342,13 +1342,9 @@ async function drawPane($: EngineInterface, els: Els, surface: RenderSurface, is
             {PANE_TITLE}
           </Text>
         </Box>
-        <Button key="pane-settings" plain onPress={() => void update($, screenAtom, s => ({ ...s, open: true }))}>
-          <Text dimColor>⚙ Settings</Text>
-        </Button>
+        <Button key="pane-settings" label="⚙ Settings" dimColor onPress={() => void update($, screenAtom, s => ({ ...s, open: true }))} />
         <Text> </Text>
-        <Button key="pane-hide" plain onPress={() => hidePane($)}>
-          <Text dimColor>Hide</Text>
-        </Button>
+        <Button key="pane-hide" label="Hide" dimColor onPress={() => hidePane($)} />
       </Box>
       {sections.length > 0 ? sections : dimLine(els, TEXT.allOff, width)}
     </Box>
@@ -1484,12 +1480,8 @@ async function drawSettings($: EngineInterface, els: Els, surface: RenderSurface
         screen.portsError ? <Text color="error">{screen.portsError}</Text> : <Text dimColor>port=label, separated by commas; Enter saves.</Text>,
       ])}
       <Box flexDirection="row" columnGap={2}>
-        <Button key="set-done" plain onPress={() => void update($, screenAtom, () => ({ open: false, portsError: null, portsDraft: null }))}>
-          Done
-        </Button>
-        <Button key="set-reset" plain onPress={() => void resetSettings($)}>
-          <Text dimColor>Reset to defaults</Text>
-        </Button>
+        <Button key="set-done" label="Done" onPress={() => void update($, screenAtom, () => ({ open: false, portsError: null, portsDraft: null }))} />
+        <Button key="set-reset" label="Reset to defaults" dimColor onPress={() => void resetSettings($)} />
       </Box>
     </Box>
   )
