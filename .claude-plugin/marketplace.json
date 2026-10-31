@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "chat-sidecar",
+  "description": "A side pane for Claude Code: what the chat is doing, what waits on you, and what it uses.",
+  "owner": {
+    "name": "Damian Syczewski",
+    "url": "https://github.com/codeash37"
+  },
+  "plugins": [
+    {
+      "name": "chat-sidecar",
+      "description": "The to-do list and plan band, tasks Claude gives you answered in place, subagents, background processes, connectors, context files, skills and Git of the current chat, in one side pane.",
+      "source": "./",
+      "license": "MIT",
+      "homepage": "https://github.com/codeash37/chat-sidecar",
+      "category": "productivity"
+    }
+  ]
+}

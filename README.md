@@ -24,11 +24,11 @@ Every section can be turned off or moved. A section that is off stops its backgr
 At the prompt of a Claude Code terminal session:
 
 ```
-/plugin install chat-sidecar --marketplace <owner>/chat-sidecar
+/plugin install chat-sidecar --marketplace codeash37/chat-sidecar
 ```
 
-From a shell: `claude plugin install chat-sidecar --marketplace <owner>/chat-sidecar`.
-In the desktop app: **+** next to the prompt → **Plugins** → **Add marketplace** `<owner>/chat-sidecar` → **Add plugin**.
+From a shell: `claude plugin install chat-sidecar --marketplace codeash37/chat-sidecar`.
+In the desktop app: **+** next to the prompt → **Plugins** → **Add marketplace** `codeash37/chat-sidecar` → **Add plugin**.
 
 To run from a local clone instead, add the folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`, or start Claude Code with `claude --plugin-dir <folder>`.
 
