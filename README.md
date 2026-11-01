@@ -1,6 +1,8 @@
 # <img src=".claude-plugin/icon.png" alt="" width="40" align="top"> chat-sidecar
 
-[![CI](https://github.com/codeash37/chat-sidecar/actions/workflows/ci.yml/badge.svg)](https://github.com/codeash37/chat-sidecar/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/codeash37/chat-sidecar/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/codeash37/chat-sidecar/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-E26C54?style=flat-square)](LICENSE)
+![Claude Code 2.1.311+](https://img.shields.io/badge/Claude%20Code-2.1.311%2B-E26C54?style=flat-square)
 
 A side pane for Claude Code that shows what the current chat is doing, what is waiting on you, and what it uses. You also answer the tasks Claude gives you right there.
 
@@ -84,7 +86,7 @@ Everything runs locally. The plugin reads the chat's own events and runs only th
 - PowerShell `Get-CimInstance` or `ps` for test runs;
 - `git rev-parse`, `git reflog`, `git for-each-ref` and `git rev-list` for the Git section.
 
-Tasks are stored in Claude Code's plugin store on your machine. Nothing is sent anywhere.
+Tasks are stored in Claude Code's plugin store on your machine. Nothing is sent anywhere. To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Development
 
