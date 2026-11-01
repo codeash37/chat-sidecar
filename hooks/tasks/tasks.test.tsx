@@ -1,4 +1,4 @@
-// From human-in-the-loop 0.1.8 by Tzafrir Rehan (MIT, see LICENSE-human-in-the-loop), adapted for chat-sidecar: see UPSTREAM.md.
+// From human-in-the-loop 0.1.8 by Tzafrir Rehan (MIT, see LICENSE in this folder), adapted for chat-sidecar: see UPSTREAM.md.
 import type { On, PaneOpenArgs, PromptSubmitInput } from 'claude-code'
 import { describe, expect, mock, test as baseTest } from 'claude-code/testing'
 import type { Engine, Mounted } from 'claude-code/testing'

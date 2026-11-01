@@ -2,7 +2,7 @@
 
 The mod was called `chat-pane` until 2026-10-27; every `chat-pane` below now reads `chat-sidecar`.
 
-The task part of chat-sidecar comes from [tzafrir/human-in-the-loop](https://github.com/tzafrir/human-in-the-loop) 0.1.8 by Tzafrir Rehan, MIT (see `../../LICENSE-human-in-the-loop`). Copied 2026-10-22.
+The task part of chat-sidecar comes from [tzafrir/human-in-the-loop](https://github.com/tzafrir/human-in-the-loop) 0.1.8 by Tzafrir Rehan, MIT (see `LICENSE` in this folder). Copied 2026-10-22.
 
 | Here | Upstream |
 | --- | --- |

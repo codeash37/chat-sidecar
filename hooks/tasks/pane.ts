@@ -1,4 +1,4 @@
-// From human-in-the-loop 0.1.8 by Tzafrir Rehan (MIT, see LICENSE-human-in-the-loop), adapted for chat-sidecar: see UPSTREAM.md.
+// From human-in-the-loop 0.1.8 by Tzafrir Rehan (MIT, see LICENSE in this folder), adapted for chat-sidecar: see UPSTREAM.md.
 import type { Editing, Task } from '../../types'
 import { MAX_OPTION, MAX_WHY, isActive } from './tasks'
 import { ago, cellsOf, clip, printable } from './text'
