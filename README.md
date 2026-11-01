@@ -1,5 +1,7 @@
 # chat-sidecar
 
+[![CI](https://github.com/codeash37/chat-sidecar/actions/workflows/ci.yml/badge.svg)](https://github.com/codeash37/chat-sidecar/actions/workflows/ci.yml)
+
 A side pane for Claude Code that shows what the current chat is doing, what is waiting on you, and what it uses. You also answer the tasks Claude gives you right there.
 
 <p align="center"><img src="docs/demo.gif" alt="chat-sidecar pane: a to-do list being checked off, a task card with options, subagents running, ports, connectors, context files and skills" width="480"></p>
