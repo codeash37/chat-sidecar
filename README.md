@@ -3,6 +3,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/codeash37/chat-sidecar/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/codeash37/chat-sidecar/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-E26C54?style=flat-square)](LICENSE)
 ![Claude Code 2.1.311+](https://img.shields.io/badge/Claude%20Code-2.1.311%2B-E26C54?style=flat-square)
+[![statuslin.es](https://img.shields.io/badge/statuslin.es-listed-E26C54?style=flat-square)](https://statuslin.es/mods/chat-sidecar)
 
 A side pane for Claude Code that shows what the current chat is doing, what is waiting on you, and what it uses. You also answer the tasks Claude gives you right there.
 
