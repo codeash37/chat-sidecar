@@ -804,6 +804,57 @@ test('P2#10 P2#11 P2#12 P2#13: subagent cards run, finish, are polled, and their
   expect(await ui.find({ key: 'card-a1' })).toBeDefined()
 })
 
+test('an orchestrator: its children nest under it, finished fold to a count, a row opens the full card; it stays running between turns', async ($, on) => {
+  const { world, clock } = seat(on)
+  const ids: Record<string, string> = { Orchestrate: 'orch', 'Task 2': 'f1', Review: 'r1' }
+  world.agents = [
+    { id: 'orch', description: 'Orchestrate sync plan', type: 'orchestrator', status: 'running' },
+    { id: 'f1', description: 'Task 2: core', type: 'feature-agent', status: 'running', parentId: 'orch' },
+    { id: 'r1', description: 'Review Task 2', type: 'code-reviewer', status: 'running', parentId: 'orch' },
+    { id: 't1', description: 'Run tests', type: 'tester', status: 'running', parentId: 'orch' },
+  ] as never
+  world.spawnId = e => ids[Object.keys(ids).find(k => e.description.startsWith(k))!]!
+  await start($)
+  await clock.settle()
+  await $.agent.spawn({ prompt: 'x', description: 'Orchestrate sync plan', subagentType: 'orchestrator', background: true } as never)
+  await $.agent.spawn({ prompt: 'y', description: 'Task 2: core', subagentType: 'feature-agent', parentAgentId: 'orch', background: true } as never)
+  await $.tool.call({ tool: 'Edit', file_path: '/repo/a.ts', agentId: 'f1' } as never)
+  await $.agent.spawn({ prompt: 'z', description: 'Review Task 2', subagentType: 'code-reviewer', parentAgentId: 'orch', background: true } as never)
+  // A child whose spawn the mod did not hear is adopted from the list, under its parent.
+  await $.tool.call({ tool: 'Bash', command: 'npm test', agentId: 't1' } as never)
+  const ui = await $.ui.mount(pane())
+  let text = await allText(ui)
+  expect(text).toContain('Running · 1')
+  expect(text).toContain('Subagents · 3 running of 3')
+  expect(text).toContain('feature-agent · Editing a.ts')
+  expect(text).toContain('tester · Running: npm test')
+  expect(await ui.find({ key: 'card-f1' })).toBeUndefined()
+
+  // The orchestrator ends a turn while its children work: it stays running.
+  world.agents = world.agents.map(a => (a.id === 'orch' ? { ...a, status: 'idle' } : a))
+  await $.turn.complete({ answer: 'waiting', durationMs: 1, isAborted: false, reason: 'answer', turnId: 'o1', agentId: 'orch' } as never)
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, reason: 'answer', turnId: 'f', agentId: 'f1' } as never)
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, reason: 'answer', turnId: 'r', agentId: 'r1' } as never)
+  text = await allText(ui)
+  expect(text).toContain('Running · 1')
+  expect(text).not.toContain('Finished ·')
+  expect(text).toContain('Subagents · 1 running of 3')
+  expect(text).toContain('▸ 2 finished')
+  expect(text).not.toContain('Task 2: core')
+
+  await ui.press({ key: 'over-orch' })
+  await ui.press({ key: 'kid-f1' })
+  expect((await ui.find({ key: 'card-f1' }))?.text).toContain('Done · 1 step')
+
+  // The last child ends and the orchestrator, idle, is over; a later call brings it back.
+  world.agents = world.agents.map(a => (a.id === 't1' ? { ...a, status: 'completed' } : a))
+  await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, reason: 'answer', turnId: 't', agentId: 't1' } as never)
+  await clock.advance(2100)
+  text = await allText(ui)
+  expect(text).toContain('Finished · 1')
+  expect(text).toContain('Subagents · 0 running of 3')
+})
+
 test('P2#14: six calls: the live line, the recent steps, and the expanded list', async ($, on) => {
   const { world, clock } = seat(on)
   world.agents = [{ id: 'a1', description: 'Research', type: 'Explore', status: 'running' }]

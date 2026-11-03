@@ -386,6 +386,15 @@ export function pruneCards(cards: readonly Card[]): Card[] {
   return cards.filter(c => !drop.has(c.id))
 }
 
+/**
+ * Whether an agent whose turn ended still works: it waits on background work it owns, or (not ended) a card it
+ * spawned is working. An orchestrator ends a turn after each spawn and wakes when a child hands back.
+ */
+export function isHeld(id: string, status: string | undefined, cards: readonly Card[]): boolean {
+  if (status === undefined || status === 'completed' || status === 'failed' || status === 'killed') return false
+  return status === 'waiting' || cards.some(c => c.parentId === id && c.phase === 'working')
+}
+
 /** A step appended (newest MAX_STEPS kept), the call counted, a card that was over working again. */
 export function withStep(card: Card, step: Step): Card {
   const steps = [...card.steps, step]
