@@ -1,4 +1,4 @@
-// chat-sidecar 0.5.0: the main module. The Sidecar pane (frame, settings, To-do, Subagents, Background, Connectors,
+// chat-sidecar 0.6.0: the main module. The Sidecar pane (frame, settings, To-do, Subagents, Background, Connectors,
 // Context files, Skills, Git, and Tasks for me through hooks/tasks), the plan band above the prompt and the plan tool.
 // Written from SPEC.md.
 import { atom, read, update } from 'claude-code'

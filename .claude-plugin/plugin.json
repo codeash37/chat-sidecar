@@ -1,6 +1,6 @@
 {
   "name": "chat-sidecar",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A side pane for the current chat that shows what Claude is doing, what's waiting on you, and what it's using: the to-do list, tasks Claude gives you, answered in place, subagents, background processes, connectors, context files and skills of this chat, in one side pane; the plan band above the prompt",
   "author": {
     "name": "Damian Syczewski"
