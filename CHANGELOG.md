@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Subagents**: agents started by another agent (an orchestrator's feature agents, reviewers, testers) sit under its card as rows; finished ones fold to a count, and a row opens the child's full card.
+- An agent that ends a turn while it waits on agents it started stays in Running instead of flipping to Finished.
+
 ## 0.5.0
 
 - The pane, its sections, the plan band and connector detection are rewritten from a behavior spec (`SPEC.md`); features, settings, commands and tools are unchanged.

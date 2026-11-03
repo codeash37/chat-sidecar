@@ -138,6 +138,8 @@ export type Card = {
   seat: number
   /** Index into the 8 card colours. */
   color: number
+  /** The agent whose loop spawned it (an orchestrator); absent when the main chat did. */
+  parentId?: string
 }
 
 /** The Subagents section's view: expanded cards and folded groups. */

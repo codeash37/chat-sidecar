@@ -28,6 +28,7 @@ import {
   pickColor,
   portGroups,
   pruneCards,
+  isHeld,
   shownFolder,
   skillOfPath,
   skillsShown,
@@ -262,6 +263,17 @@ test('at most 30 finished cards kept; running ones never dropped', () => {
   expect(kept).toHaveLength(31)
   expect(kept[0]?.id).toBe('run')
   expect(kept[1]?.id).toBe('f5')
+})
+
+test('isHeld: an orchestrator between turns still works while it waits or a child of its works', () => {
+  const kid = { ...card('k', 'working'), parentId: 'o' }
+  expect(isHeld('o', 'waiting', [])).toBe(true)
+  expect(isHeld('o', 'idle', [kid])).toBe(true)
+  expect(isHeld('o', 'running', [kid])).toBe(true)
+  expect(isHeld('o', 'idle', [{ ...kid, phase: 'done' }])).toBe(false)
+  expect(isHeld('o', 'running', [])).toBe(false)
+  expect(isHeld('o', 'completed', [kid])).toBe(false)
+  expect(isHeld('o', undefined, [kid])).toBe(false)
 })
 
 // ---- Background ----

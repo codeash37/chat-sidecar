@@ -49,6 +49,7 @@ import {
   plural,
   portGroups,
   pruneCards,
+  isHeld,
   shownFolder,
   skillOfPath,
   skillsShown,
@@ -581,11 +582,14 @@ async function saveCards($: EngineInterface, change: (cards: readonly Card[]) =>
   syncCardTimers($)
 }
 
-function newCard(id: string, description: string, type: string, model: string, now: number, cards: readonly Card[]): Card {
+function newCard(id: string, description: string, type: string, model: string, now: number, cards: readonly Card[], parentId?: string): Card {
   const running = cards.filter(c => c.phase === 'working').map(c => c.color)
   const color = pickColor(live.lastColor, running)
   live.lastColor = color
-  return { id, description, type, model, effort: '', phase: 'working', startMs: now, calls: 0, steps: [], tokens: 0, turnTokens: 0, usageSeen: false, seat: live.seat++, color }
+  return {
+    id, description, type, model, effort: '', phase: 'working', startMs: now, calls: 0, steps: [], tokens: 0, turnTokens: 0, usageSeen: false, seat: live.seat++, color,
+    ...(parentId ? { parentId } : {}),
+  }
 }
 
 /** A card for an agent id, adopted from `$.agent.list()` when missed; null for a foreign one. */
@@ -599,7 +603,7 @@ async function cardFor($: EngineInterface, agentId: string): Promise<boolean> {
     return false
   }
   const now = await $.clock.now()
-  await saveCards($, cards => (cards.some(c => c.id === agentId) ? cards : [...cards, newCard(agentId, info.description || 'Subagent', info.type || 'subagent', '', now, cards)]))
+  await saveCards($, cards => (cards.some(c => c.id === agentId) ? cards : [...cards, newCard(agentId, info.description || 'Subagent', info.type || 'subagent', '', now, cards, info.parentId)]))
   return true
 }
 
@@ -642,7 +646,13 @@ async function pollAgents($: EngineInterface) {
     if (!info) return c
     let card = c
     if (!card.description && info.description) card = { ...card, description: info.description }
-    if (card.phase === 'working' && (info.status === 'completed' || info.status === 'idle')) card = { ...card, phase: 'done', endMs: now }
+    if (!card.parentId && info.parentId) card = { ...card, parentId: info.parentId }
+    const held = isHeld(c.id, info.status, cards)
+    if (card.phase === 'working' && !held && (info.status === 'completed' || info.status === 'idle')) card = { ...card, phase: 'done', endMs: now }
+    if (card.phase === 'done' && held) {
+      const { endMs: _ended, ...rest } = card
+      card = { ...rest, phase: 'working' }
+    }
     if (card.phase === 'working' && (info.status === 'failed' || info.status === 'killed')) card = { ...card, phase: 'failed', endMs: now }
     if (card !== c) changed = true
     return card
@@ -806,15 +816,82 @@ async function todoSection($: EngineInterface, v: View): Promise<{ count: string
   }
 }
 
-function cardEl($: EngineInterface, v: View, card: Card, tick: number, expanded: boolean, style: BarStyle): RenderElement {
+function markOf(els: Els, card: Card): RenderElement {
+  const { Text } = els
+  return card.phase === 'working' ? <Text color="success">●</Text> : card.phase === 'done' ? <Text color="success">✓</Text> : <Text color="error">✗</Text>
+}
+
+function secsOf(v: View, card: Card): number {
+  return ((card.phase === 'working' ? v.now : (card.endMs ?? v.now)) - card.startMs) / 1000
+}
+
+/**
+ * The agents a card spawned, under it: running ones as two-line rows, the finished folded to a count; a row
+ * pressed opens the child's full card (its own children nested the same way).
+ */
+function kidsEl($: EngineInterface, v: View, parent: Card, cards: readonly Card[], tick: number, view: CardsView, style: BarStyle): RenderElement | null {
+  const { els } = v
+  const { Box, Text, Button } = els
+  const kids = cards.filter(c => c.parentId === parent.id)
+  if (kids.length === 0) return null
+  const running = kids.filter(c => c.phase === 'working')
+  const over = kids.filter(c => c.phase !== 'working')
+  const folded = view.folded.includes(`kids:${parent.id}`)
+  const showOver = view.expanded.includes(`over:${parent.id}`)
+  const rows = [...running, ...(showOver ? over : [])]
+  const items = rows.length + (over.length > 0 ? 1 : 0)
+  const row = (c: Card, i: number) => {
+    const last = i === items - 1
+    const open = view.expanded.includes(`open:${c.id}`)
+    const now = c.steps.at(-1)
+    const doing = c.phase === 'working' ? (now ? now.live : 'Getting started') : c.phase === 'done' ? `Done · ${plural(c.calls, 'step')}` : 'Stopped'
+    return (
+      <Box key={`kid-box-${c.id}`} flexDirection="column">
+        {spread(
+          els,
+          <Button key={`kid-${c.id}`} plain onPress={() => toggleIn($, 'expanded', `open:${c.id}`)}>
+            <Text wrap="truncate-end">
+              <Text dimColor>{`${last ? '└' : '├'} `}</Text>
+              {markOf(els, c)}
+              <Text bold>{` ${c.description}`}</Text>
+            </Text>
+          </Button>,
+          <Text dimColor>{elapsed(secsOf(v, c))}</Text>,
+        )}
+        <Text dimColor wrap="truncate-end">{`${last ? ' ' : '│'}   ${[c.type, doing].join(' · ')}`}</Text>
+        {open ? (
+          <Box paddingLeft={2} flexDirection="column">
+            {cardEl($, { ...v, inner: Math.max(14, v.inner - 2) }, c, tick, view, style, cards)}
+          </Box>
+        ) : null}
+      </Box>
+    )
+  }
+  return (
+    <Box key={`kids-box-${parent.id}`} flexDirection="column">
+      <Button key={`kids-${parent.id}`} plain onPress={() => toggleIn($, 'folded', `kids:${parent.id}`)}>
+        <Text bold>{`${folded ? '▸' : '▾'} Subagents · ${running.length} running of ${kids.length}`}</Text>
+      </Button>
+      {folded ? null : rows.map(row)}
+      {!folded && over.length > 0 ? (
+        <Button key={`over-${parent.id}`} plain onPress={() => toggleIn($, 'expanded', `over:${parent.id}`)}>
+          <Text dimColor>{`└ ${showOver ? '▾ Hide finished' : `▸ ${over.length} finished`}`}</Text>
+        </Button>
+      ) : null}
+    </Box>
+  )
+}
+
+function cardEl($: EngineInterface, v: View, card: Card, tick: number, view: CardsView, style: BarStyle, cards: readonly Card[]): RenderElement {
   const { els, inner } = v
   const { Box, Text, Button } = els
+  const expanded = view.expanded.includes(card.id)
   const w = Math.max(10, inner - 4)
   const isWorking = card.phase === 'working'
   const hex = CARD_HEX[CARD_COLORS[card.color % CARD_COLORS.length]!]
-  const mark = isWorking ? <Text color="success">●</Text> : card.phase === 'done' ? <Text color="success">✓</Text> : <Text color="error">✗</Text>
+  const mark = markOf(els, card)
   const meta = [card.type, card.model, card.effort].filter(Boolean).join(' · ')
-  const secs = ((isWorking ? v.now : (card.endMs ?? v.now)) - card.startMs) / 1000
+  const secs = secsOf(v, card)
   const right = `${card.usageSeen ? `${tokens(card.tokens + card.turnTokens)} tokens · ` : ''}${elapsed(secs)}`
   const newest = card.steps.at(-1)
   const spinner = '⠋⠙⠹⠸'[tick % 4]!
@@ -849,6 +926,7 @@ function cardEl($: EngineInterface, v: View, card: Card, tick: number, expanded:
         <Text color={card.phase === 'failed' ? 'error' : hex}>{piece}</Text>
         <Text dimColor>{after}</Text>
       </Text>
+      {kidsEl($, v, card, cards, tick, view, style)}
       {kept > 0 ? (
         <Button key={`steps-${card.id}`} plain onPress={() => toggleIn($, 'expanded', card.id)}>
           <Text dimColor>{expanded ? '▾ Hide steps' : `▸ All ${plural(n, 'step')}`}</Text>
@@ -899,10 +977,12 @@ async function subagentsSection($: EngineInterface, v: View): Promise<{ count: s
   const tick = await read($, clockAtom)
   if (cards.length === 0) return { count: '', body: dimLine(els, TEXT.noAgents, inner) }
   const running = cards.filter(c => c.phase === 'working').length
+  // A card whose parent has a card is drawn under it, not in a group.
+  const top = cards.filter(c => !c.parentId || !cards.some(p => p.id === c.parentId))
   const groups = [
-    { id: 'running', title: 'Running', cards: cards.filter(c => c.phase === 'working') },
-    { id: 'finished', title: 'Finished', cards: cards.filter(c => c.phase === 'done') },
-    { id: 'stopped', title: 'Stopped', cards: cards.filter(c => c.phase === 'failed') },
+    { id: 'running', title: 'Running', cards: top.filter(c => c.phase === 'working') },
+    { id: 'finished', title: 'Finished', cards: top.filter(c => c.phase === 'done') },
+    { id: 'stopped', title: 'Stopped', cards: top.filter(c => c.phase === 'failed') },
   ].filter(g => g.cards.length > 0)
   return {
     count: `${running} running of ${cards.length}`,
@@ -921,7 +1001,7 @@ async function subagentsSection($: EngineInterface, v: View): Promise<{ count: s
                 </Button>
                 <Text {...look}>{heading.padEnd(Math.max(0, inner - 2))}</Text>
               </Box>
-              {folded ? null : g.cards.map(c => cardEl($, v, c, tick, view.expanded.includes(c.id), live.cfg.barStyle))}
+              {folded ? null : g.cards.map(c => cardEl($, v, c, tick, view, live.cfg.barStyle, cards))}
             </Box>
           )
         })}
@@ -1762,10 +1842,18 @@ export const register: Register = (on, options) => {
         const old = cards.find(c => c.id === id)
         if (old) {
           return cards.map(c =>
-            c.id === id ? { ...c, ...(e.description ? { description: e.description } : {}), ...(e.subagentType ? { type: e.subagentType } : {}), model: c.model || model } : c,
+            c.id === id
+              ? {
+                  ...c,
+                  ...(e.description ? { description: e.description } : {}),
+                  ...(e.subagentType ? { type: e.subagentType } : {}),
+                  ...(e.parentAgentId ? { parentId: e.parentAgentId } : {}),
+                  model: c.model || model,
+                }
+              : c,
           )
         }
-        return [...cards, newCard(id, e.description || 'Subagent', e.subagentType || 'subagent', model, now, cards)]
+        return [...cards, newCard(id, e.description || 'Subagent', e.subagentType || 'subagent', model, now, cards, e.parentAgentId)]
       })
     } catch (err) {
       logError($, 'agent.spawn', err)
@@ -1813,20 +1901,22 @@ export const register: Register = (on, options) => {
         const now = await $.clock.now()
         const failed = e.reason === 'error' || e.reason === 'refusal' || e.isAborted
         const usage = e.usage ?? result.usage
-        await saveCards($, cards =>
-          cards.map(c =>
-            c.id === id
-              ? {
-                  ...c,
-                  phase: failed ? 'failed' : 'done',
-                  endMs: now,
-                  tokens: c.tokens + (usage ? usageTotal(usage) : c.turnTokens),
-                  turnTokens: 0,
-                  usageSeen: c.usageSeen || usage !== undefined,
-                }
-              : c,
-          ),
-        )
+        const status = (await $.agent.list().catch(() => [])).find(a => a.id === id)?.status
+        await saveCards($, cards => {
+          const held = !failed && isHeld(id, status, cards)
+          return cards.map(c => {
+            if (c.id !== id) return c
+            const { endMs: _ended, ...rest } = c
+            return {
+              ...rest,
+              phase: failed ? 'failed' : held ? 'working' : 'done',
+              ...(held ? {} : { endMs: now }),
+              tokens: c.tokens + (usage ? usageTotal(usage) : c.turnTokens),
+              turnTokens: 0,
+              usageSeen: c.usageSeen || usage !== undefined,
+            }
+          })
+        })
       }
     } catch (err) {
       logError($, 'turn.complete', err)
