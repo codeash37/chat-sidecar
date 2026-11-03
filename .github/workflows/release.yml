@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish, e.g. v0.6.0
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - name: Notes from CHANGELOG
+        run: |
+          ver="${TAG#v}"
+          grep -q "\"version\": \"$ver\"" .claude-plugin/plugin.json || { echo "plugin.json is not at $ver"; exit 1; }
+          awk -v head="## $ver" '$0 == head { on = 1; next } /^## / { if (on) exit } on' CHANGELOG.md > notes.md
+          grep -q '[^[:space:]]' notes.md || { echo "CHANGELOG.md has no section ## $ver"; exit 1; }
+      - run: gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag
